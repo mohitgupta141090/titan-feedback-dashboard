@@ -31,7 +31,7 @@ async function fetchVotesPage(apiKey, skip) {
 }
 
 async function getVotes30d(apiKey) {
-  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
   const counts = {};
   let skip = 0;
 

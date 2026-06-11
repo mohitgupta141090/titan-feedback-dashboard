@@ -156,8 +156,8 @@
       return (
         <div>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-            <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>🔥 VOTES IN LAST 30 DAYS · ALL POSTS</span>
-            <span style={{ fontSize:12, color:"#6b7280" }}>Ranked by actual votes cast in last 30 days · irrespective of when post was created</span>
+            <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>🔥 VOTES IN LAST 60 DAYS · ALL POSTS</span>
+            <span style={{ fontSize:12, color:"#6b7280" }}>Ranked by actual votes cast in last 60 days · irrespective of when post was created</span>
           </div>
           {cohort.length === 0 ? (
             <div style={{ textAlign:"center", padding:40, color:"#9ca3af", fontSize:13 }}>No vote data available — click Refresh to load live data.</div>
@@ -184,7 +184,7 @@
                     </div>
                     <div style={{ marginBottom:8 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
-                        <span style={{ fontSize:10, color:"#6b7280", fontWeight:600 }}>VOTES IN LAST 30 DAYS</span>
+                        <span style={{ fontSize:10, color:"#6b7280", fontWeight:600 }}>VOTES IN LAST 60 DAYS</span>
                         <span style={{ fontSize:13, fontWeight:800, color:"#6366f1" }}>{p.votes30d.toLocaleString()}</span>
                       </div>
                       <div style={{ height:8, borderRadius:4, background:"#e5e7eb", overflow:"hidden" }}>
