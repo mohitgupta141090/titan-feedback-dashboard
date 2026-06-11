@@ -143,14 +143,15 @@
       );
     }
 
-    function VelocityTab({ data }) {
+    function VelocityTab({ data, onRefresh, loading }) {
       const active = data.filter(d => ACTIVE_STATUS_IDS.includes(d.portalStatusId));
+      const hasLiveData = active.filter(p => (p.votes60d || 0) > 0).length > 3;
       const cohort = active
-        .filter(p => (p.votes30d || 0) > 0)
-        .map(p => ({ ...p, votes30d: p.votes30d || 0 }))
-        .sort((a, b) => b.votes30d - a.votes30d)
+        .filter(p => (p.votes60d || 0) > 0)
+        .map(p => ({ ...p, votes60d: p.votes60d || 0 }))
+        .sort((a, b) => b.votes60d - a.votes60d)
         .slice(0, 25);
-      const maxVotes30d = cohort.length > 0 ? cohort[0].votes30d : 1;
+      const maxVotes60d = cohort.length > 0 ? cohort[0].votes60d : 1;
       const maxTotal = cohort.length > 0 ? Math.max(...cohort.map(p => p.votes)) : 1;
 
       return (
@@ -159,12 +160,19 @@
             <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>🔥 VOTES IN LAST 60 DAYS · ALL POSTS</span>
             <span style={{ fontSize:12, color:"#6b7280" }}>Ranked by actual votes cast in last 60 days · irrespective of when post was created</span>
           </div>
-          {cohort.length === 0 ? (
-            <div style={{ textAlign:"center", padding:40, color:"#9ca3af", fontSize:13 }}>No vote data available — click Refresh to load live data.</div>
+          {!hasLiveData ? (
+            <div style={{ textAlign:"center", padding:48, color:"#9ca3af", fontSize:13 }}>
+              <div style={{ fontSize:32, marginBottom:12 }}>⚡</div>
+              <div style={{ fontWeight:700, color:"#374151", fontSize:15, marginBottom:6 }}>Live vote data required</div>
+              <div style={{ marginBottom:20 }}>Click Refresh to load real 60-day vote counts from Canny.</div>
+              <button onClick={onRefresh} disabled={loading} style={{ padding:"8px 20px", borderRadius:8, border:"none", cursor:loading?"not-allowed":"pointer", background:"linear-gradient(135deg,#6366f1,#8b5cf6)", color:"#fff", fontWeight:700, fontSize:13 }}>
+                {loading ? "⏳ Loading…" : "↻ Refresh Now"}
+              </button>
+            </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {cohort.map((p, i) => {
-                const bar30dPct = Math.min(100, (p.votes30d / maxVotes30d) * 100);
+                const bar60dPct = Math.min(100, (p.votes60d / maxVotes60d) * 100);
                 const barTotalPct = Math.min(100, (p.votes / maxTotal) * 100);
                 const isTop = i === 0;
                 return (
@@ -185,10 +193,10 @@
                     <div style={{ marginBottom:8 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
                         <span style={{ fontSize:10, color:"#6b7280", fontWeight:600 }}>VOTES IN LAST 60 DAYS</span>
-                        <span style={{ fontSize:13, fontWeight:800, color:"#6366f1" }}>{p.votes30d.toLocaleString()}</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:"#6366f1" }}>{p.votes60d.toLocaleString()}</span>
                       </div>
                       <div style={{ height:8, borderRadius:4, background:"#e5e7eb", overflow:"hidden" }}>
-                        <div style={{ width:`${bar30dPct}%`, height:"100%", borderRadius:4, background:"linear-gradient(90deg,#6366f1,#8b5cf6)" }} />
+                        <div style={{ width:`${bar60dPct}%`, height:"100%", borderRadius:4, background:"linear-gradient(90deg,#6366f1,#8b5cf6)" }} />
                       </div>
                     </div>
                     <div>
@@ -258,7 +266,7 @@
             ))}
           </div>
           <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e5e7eb", padding:20 }}>
-            {tab==="top" ? <TopPostsTab data={data} /> : <VelocityTab data={data} />}
+            {tab==="top" ? <TopPostsTab data={data} /> : <VelocityTab data={data} onRefresh={handleRefresh} loading={loading} />}
           </div>
           <div style={{ marginTop:12, fontSize:11, color:"#9ca3af", textAlign:"center" }}>
             Paid votes estimated at ~38% of total · Last 1Y votes estimated from creation date · Portal statuses are public-facing

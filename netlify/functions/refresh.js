@@ -76,7 +76,7 @@ exports.handler = async function (event, context) {
   }
 
   try {
-    const [page1, page2, votes30d] = await Promise.all([
+    const [page1, page2, votes60d] = await Promise.all([
       fetchIdeas(CANNY_API_KEY, 0),
       fetchIdeas(CANNY_API_KEY, 50),
       getVotes30d(CANNY_API_KEY),
@@ -91,7 +91,7 @@ exports.handler = async function (event, context) {
       id: p.id,
       title: p.title,
       votes: p.score,
-      votes30d: votes30d[p.id] || 0,
+      votes60d: votes60d[p.id] || 0,
       commentCount: p.commentCount,
       created: p.created,
       portalStatusId: p.status === "open"
