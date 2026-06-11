@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Titan Feedback Intelligence</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f9fafb; }
+    tr:hover { background: #f0f4ff !important; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useCallback } = React;
+
+    const PORTAL_STATUS = {
+      "6194db84fdece21ce2875aae": { label: "Open", color: "#3b82f6", bg: "#eff6ff", dot: "#2563eb" },
+      "6194db84fdece21ce2875aaf": { label: "Under Review", color: "#f59e0b", bg: "#fffbeb", dot: "#d97706" },
+      "6194db84fdece21ce2875ab0": { label: "Planned", color: "#8b5cf6", bg: "#f5f3ff", dot: "#7c3aed" },
+      "6194db84fdece21ce2875ab1": { label: "In Progress", color: "#10b981", bg: "#ecfdf5", dot: "#059669" },
+      "6194db84fdece21ce2875ab2": { label: "Complete", color: "#6b7280", bg: "#f9fafb", dot: "#4b5563" },
+      "6194db85fdece21ce2875ad1": { label: "Closed", color: "#ef4444", bg: "#fef2f2", dot: "#dc2626" },
+    };
+
+    const ACTIVE_STATUS_IDS = [
+      "6194db84fdece21ce2875aae",
+      "6194db84fdece21ce2875aaf",
+      "6194db84fdece21ce2875ab0",
+    ];
+
+    const INITIAL_DATA = [
+      {"id":"68559105e8d9cd53c4077b00","title":"SMTP connection at domain level","votes":650,"commentCount":5,"created":"2025-05-07T11:00:45.136Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/smtp-connection-at-domain-level"},
+      {"id":"68559054e8d9cd53c4054534","title":"Inbox Sorting Options","votes":542,"commentCount":78,"created":"2019-09-06T21:03:59.000Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/inbox-sorting-options-sort-by-senders-name-date"},
+      {"id":"68559061e8d9cd53c40576a9","title":"Export backup of emails","votes":346,"commentCount":54,"created":"2020-06-01T05:33:56.000Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/export-backup-of-emails"},
+      {"id":"68559073e8d9cd53c405b1ff","title":"Integrate Titan Calendar on Calendly","votes":183,"commentCount":52,"created":"2021-04-12T15:48:06.449Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/integrate-titan-calendar-on-calendly"},
+      {"id":"685590dee8d9cd53c40703e6","title":"Email List","votes":144,"commentCount":4,"created":"2024-07-22T18:32:22.007Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/email-list"},
+      {"id":"6855904fe8d9cd53c4053428","title":"Snooze emails","votes":125,"commentCount":14,"created":"2019-03-22T14:45:43.000Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/i-want-to-snooze-my-emails-to-see-them-later"},
+      {"id":"68559063e8d9cd53c4057b81","title":"Unified Inbox","votes":114,"commentCount":30,"created":"2020-06-25T20:15:27.000Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/unified-inbox"},
+      {"id":"6855907de8d9cd53c405cf30","title":"Upgrade single account","votes":112,"commentCount":21,"created":"2021-09-25T07:48:18.767Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/upgrade-single-account"},
+      {"id":"68559065e8d9cd53c40582e7","title":"Contacts feature on mobile app","votes":106,"commentCount":24,"created":"2020-09-04T17:27:22.085Z","portalStatusId":"6194db84fdece21ce2875aaf","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/mobile-contacts-feature-on-mobile-app"},
+      {"id":"68559060e8d9cd53c4057393","title":"Add email to calendar","votes":105,"commentCount":11,"created":"2020-05-19T19:09:56.000Z","portalStatusId":"6194db84fdece21ce2875aaf","url":"https://titanmail.canny.io/admin/feedback/calendar/p/add-email-to-calendar"},
+      {"id":"68559067e8d9cd53c4058812","title":"Zoom invite in calendar","votes":101,"commentCount":12,"created":"2020-09-16T18:26:34.541Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/zoom-invite-in-calendar"},
+      {"id":"6855907be8d9cd53c405c8e5","title":"Add Desktop Settings to Mobile App","votes":98,"commentCount":22,"created":"2021-08-16T13:07:56.376Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/add-desktop-settings-to-mobile-app"},
+      {"id":"6855907fe8d9cd53c405d4f0","title":"Send emails via alias through a third party client","votes":97,"commentCount":33,"created":"2021-10-06T12:53:15.962Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/send-emails-via-alias-through-a-third-party-client"},
+      {"id":"68559098e8d9cd53c4062730","title":"Application Password for 2FA","votes":93,"commentCount":38,"created":"2022-09-30T14:37:59.922Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/application-password-for-2fa"},
+      {"id":"69d478bb05af650ed9a4f64a","title":"Recall emails","votes":85,"commentCount":7,"created":"2026-04-07T03:23:39.578Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/recall-emails-2"},
+      {"id":"68559072e8d9cd53c405ae8d","title":"Monthly Calendar View option in mobile app","votes":81,"commentCount":24,"created":"2021-03-23T16:24:14.465Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/monthly-weekly-daily-calendar-view-option-in-mobile-app"},
+      {"id":"685590b1e8d9cd53c4067904","title":"Organize folders","votes":80,"commentCount":11,"created":"2023-06-30T17:20:55.862Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/organize-folders"},
+      {"id":"685590b8e8d9cd53c4069217","title":"Invert Chronology of Threads","votes":79,"commentCount":25,"created":"2023-09-19T20:21:07.867Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/new-messages-on-top-invert-chronology-of-threads"},
+      {"id":"685590c3e8d9cd53c406abaa","title":"Marking Outgoing Emails as Urgent/Important","votes":74,"commentCount":9,"created":"2023-12-20T12:19:03.817Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/marking-outgoing-emails-as-urgentimportant"},
+      {"id":"6855906fe8d9cd53c405a1b2","title":"Translate Messages Directly In The Inbox","votes":73,"commentCount":24,"created":"2021-01-11T01:23:34.207Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/translate-messages-directly-in-the-inbox"},
+      {"id":"685590fbe8d9cd53c4075b71","title":"Incorporate CALENDAR feature on the Titan app","votes":71,"commentCount":9,"created":"2025-02-20T19:27:07.481Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/show-calendar-events-within-the-titan-email-app"},
+      {"id":"685590dfe8d9cd53c40709c2","title":"Option to enable external forwarders from Admin panel","votes":69,"commentCount":1,"created":"2024-08-04T03:19:29.470Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/option-to-enable-external-forwarders-for-accounts-from-admin-panel-1"},
+      {"id":"6855906ee8d9cd53c4059e30","title":"Paste contact using right click option on mouse","votes":69,"commentCount":22,"created":"2021-01-06T15:23:35.918Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/paste-contact-using-right-click-option-on-mouse"},
+      {"id":"6855906fe8d9cd53c405a173","title":"Undo (restore deleted text in composer)","votes":68,"commentCount":18,"created":"2021-01-10T03:28:10.445Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/undo"},
+      {"id":"69dbf4f408b63c72325d8a77","title":"Unread Mails show more bold in inbox or darker","votes":65,"commentCount":0,"created":"2026-04-12T19:39:32.303Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/unread-mails-must-look-more-bold-in-inbox-and-darker"},
+      {"id":"6855905de8d9cd53c40568b9","title":"Encrypted emails","votes":64,"commentCount":31,"created":"2020-04-15T06:40:26.000Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/encrypted-emails"},
+      {"id":"685590fbe8d9cd53c4075c25","title":"Email tracking - open count and times","votes":54,"commentCount":18,"created":"2025-02-25T06:12:44.591Z","portalStatusId":"6194db84fdece21ce2875aaf","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/read-receipts-number-of-times-it-has-been-opened-and-the-times"},
+      {"id":"685590b5e8d9cd53c406860a","title":"Creating google meets, zoom links etc.","votes":54,"commentCount":9,"created":"2023-08-30T09:01:52.867Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/titan-bookings/p/creating-google-meets-zoom-links-etc"},
+      {"id":"685590c3e8d9cd53c406ab93","title":"Email Checker tool","votes":53,"commentCount":13,"created":"2023-12-20T13:25:11.465Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/pls-add-email-checker-tool"},
+      {"id":"68eeb4d100f42319469e6da6","title":"Contact List (sorted by date acquired)","votes":58,"commentCount":2,"created":"2025-10-14T20:38:41.728Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/contacts-sorted-by-date-acquired"},
+      {"id":"685590a4e8d9cd53c4065385","title":"Create event from .ics files","votes":58,"commentCount":20,"created":"2023-02-22T11:30:15.740Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/create-event-from-ics-files"},
+      {"id":"6855908be8d9cd53c405fb18","title":"Calendar link sharing to non-titan users","votes":56,"commentCount":8,"created":"2022-03-31T16:30:01.907Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/calender-link-sharing-to-non-titan-users"},
+      {"id":"68559061e8d9cd53c40576c0","title":"Disable auto image loading (tracking pixel blocker)","votes":49,"commentCount":26,"created":"2020-06-05T14:38:37.000Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/disbale-auto-image-loading-so-people-cant-track-opens"},
+      {"id":"685590abe8d9cd53c4066661","title":"Photograph / personalization for contacts","votes":46,"commentCount":4,"created":"2023-04-30T17:30:17.619Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/contacts-photograph-personalization-for-contacts"},
+      {"id":"685590ace8d9cd53c4066cb5","title":"Show attachment while Printing","votes":46,"commentCount":8,"created":"2023-05-22T10:51:20.897Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/show-attachment-while-printing"},
+      {"id":"68559053e8d9cd53c405421e","title":"Creation of no-reply email boxes","votes":46,"commentCount":11,"created":"2019-08-12T04:36:08.000Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/creation-of-no-reply-email-boxes"},
+      {"id":"685590e6e8d9cd53c4071deb","title":"Resend email feature","votes":45,"commentCount":23,"created":"2024-09-25T10:04:59.976Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/resend-email-feature"},
+      {"id":"68559077e8d9cd53c405bbea","title":"Horizontal Preview Pane","votes":45,"commentCount":46,"created":"2021-06-02T00:29:28.910Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/horizontal-preview-pane"},
+      {"id":"685590f5e8d9cd53c4074f05","title":"Read receipts (who hasn't opened)","votes":41,"commentCount":3,"created":"2025-01-19T19:16:28.043Z","portalStatusId":"6194db84fdece21ce2875aaf","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/read-receipts-data-around-who-hasnt-opened-the-email"},
+      {"id":"685590dee8d9cd53c407041f","title":"Label/filter rules for incoming email","votes":36,"commentCount":12,"created":"2024-07-24T08:23:59.962Z","portalStatusId":"6194db84fdece21ce2875aaf","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/label-add-rules-to-labels"},
+      {"id":"685590e6e8d9cd53c4071c5c","title":"Embedded Forms/Surveys for Feedback Collection","votes":40,"commentCount":7,"created":"2024-09-13T10:58:32.534Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/forms-for-easy-lead-or-feedback-collection-linked-with-email"},
+      {"id":"685590e1e8d9cd53c4071000","title":"Delete draft emails (bulk)","votes":40,"commentCount":6,"created":"2024-08-13T14:17:59.811Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/bulk-delete-delete-draft-emails"},
+      {"id":"685590a1e8d9cd53c40646f6","title":"Dark Mode For Calendar","votes":41,"commentCount":4,"created":"2023-01-17T03:45:43.373Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/dark-mode-for-calendar"},
+      {"id":"69273a52cbfb44285ed43f1e","title":"Add Tasks to Calendar","votes":42,"commentCount":2,"created":"2025-11-26T17:35:14.359Z","portalStatusId":"6194db84fdece21ce2875aae","url":"https://titanmail.canny.io/admin/feedback/calendar/p/tasks-quero-adicionar-tarefas-ao-calendario"},
+      {"id":"689de02e07458aa0bcdcd41f","title":"Easier way to find emails (Search)","votes":42,"commentCount":3,"created":"2025-08-14T13:10:06.933Z","portalStatusId":"6194db84fdece21ce2875ab0","url":"https://titanmail.canny.io/admin/feedback/feature-requests/p/search-easier-way-to-find-emails"},
+    ];
+
+    function daysSince(dateStr) {
+      return Math.max(1, Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000));
+    }
+
+    function StatusBadge({ statusId }) {
+      const s = PORTAL_STATUS[statusId] || { label: "Unknown", color: "#6b7280", bg: "#f9fafb", dot: "#6b7280" };
+      return (
+        <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"2px 8px", borderRadius:99, fontSize:11, fontWeight:600, background:s.bg, color:s.color, border:`1px solid ${s.color}22`, whiteSpace:"nowrap" }}>
+          <span style={{ width:6, height:6, borderRadius:"50%", background:s.dot, flexShrink:0 }} />
+          {s.label}
+        </span>
+      );
+    }
+
+    function TopPostsTab({ data }) {
+      const active = data.filter(d => ACTIVE_STATUS_IDS.includes(d.portalStatusId)).sort((a,b) => b.votes - a.votes).slice(0,25);
+      const now = new Date();
+      const oneYearAgo = new Date(now.getFullYear()-1, now.getMonth(), now.getDate());
+      return (
+        <div>
+          <div style={{ marginBottom:16, display:"flex", gap:12, flexWrap:"wrap" }}>
+            {Object.entries(active.reduce((acc,p) => { const label=(PORTAL_STATUS[p.portalStatusId]||{}).label||"Unknown"; acc[label]=(acc[label]||0)+1; return acc; },{})).map(([label,count]) => (
+              <div key={label} style={{ padding:"6px 14px", borderRadius:8, background:"#f3f4f6", fontSize:12, fontWeight:600, color:"#374151" }}>{label}: <span style={{ color:"#6366f1" }}>{count}</span></div>
+            ))}
+            <div style={{ padding:"6px 14px", borderRadius:8, background:"#ede9fe", fontSize:12, fontWeight:600, color:"#6d28d9" }}>Total votes: {active.reduce((s,p)=>s+p.votes,0).toLocaleString()}</div>
+          </div>
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+              <thead>
+                <tr style={{ borderBottom:"2px solid #e5e7eb" }}>
+                  {["#","Post Title","Portal Status","Votes","Last 1Y est.","Paid est. ~38%","Comments"].map(h => (
+                    <th key={h} style={{ padding:"8px 10px", textAlign:h==="#"?"center":"left", fontWeight:700, color:"#374151", whiteSpace:"nowrap", fontSize:12 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {active.map((p,i) => {
+                  const created = new Date(p.created);
+                  const isWithinYear = created >= oneYearAgo;
+                  const daysTotal = daysSince(p.created);
+                  const last1YEst = isWithinYear ? p.votes : Math.round(p.votes*(365/daysTotal));
+                  const paidEst = Math.round(p.votes*0.38);
+                  const isEven = i%2===0;
+                  return (
+                    <tr key={p.id} onClick={() => p.url && window.open(p.url,"_blank")} style={{ background:isEven?"#fafafa":"#fff", borderBottom:"1px solid #f3f4f6", cursor:p.url?"pointer":"default" }}>
+                      <td style={{ padding:"9px 10px", textAlign:"center", fontWeight:700, color:"#9ca3af", fontSize:12 }}>{i+1}</td>
+                      <td style={{ padding:"9px 10px", maxWidth:280 }}><div style={{ fontWeight:600, color:"#111827", fontSize:13, lineHeight:1.3 }}>{p.title}</div></td>
+                      <td style={{ padding:"9px 10px" }}><StatusBadge statusId={p.portalStatusId} /></td>
+                      <td style={{ padding:"9px 10px", fontWeight:700, color:"#111827", textAlign:"right" }}>{p.votes.toLocaleString()}</td>
+                      <td style={{ padding:"9px 10px", color:"#6b7280", textAlign:"right", fontSize:12 }}>{isWithinYear ? <span style={{ color:"#10b981", fontWeight:600 }}>{p.votes.toLocaleString()}</span> : `~${last1YEst.toLocaleString()}`}</td>
+                      <td style={{ padding:"9px 10px", textAlign:"right" }}><span style={{ color:"#8b5cf6", fontWeight:700 }}>{paidEst.toLocaleString()}</span></td>
+                      <td style={{ padding:"9px 10px", color:"#6b7280", textAlign:"right" }}>{p.commentCount}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function VelocityTab({ data }) {
+      const now = Date.now();
+      const sixtyDaysAgo = now - 60*86400000;
+      const active = data.filter(d => ACTIVE_STATUS_IDS.includes(d.portalStatusId));
+      const cohort = active
+        .filter(p => new Date(p.created).getTime() >= sixtyDaysAgo && p.votes >= 30)
+        .map(p => { const daysOld=daysSince(p.created); const avgPerDay=p.votes/Math.max(1,daysOld); return {...p,daysOld,avgPerDay}; })
+        .sort((a,b) => b.votes-a.votes);
+      const maxVotes = cohort.length>0 ? cohort[0].votes : 1;
+      const maxAvg = cohort.length>0 ? Math.max(...cohort.map(p=>p.avgPerDay)) : 1;
+      const fastestAvg = [...cohort].sort((a,b)=>b.avgPerDay-a.avgPerDay)[0];
+      return (
+        <div>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+            <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>🔥 CREATED IN LAST 60 DAYS · MIN 30 VOTES</span>
+            <span style={{ fontSize:12, color:"#6b7280" }}>Ranked by total votes · avg votes/day · only posts with ≥30 votes</span>
+          </div>
+          {cohort.length===0 ? (
+            <div style={{ textAlign:"center", padding:40, color:"#9ca3af", fontSize:13 }}>No active posts created in the last 60 days with ≥30 votes.</div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {cohort.map((p,i) => {
+                const voteBarPct = Math.min(100,(p.votes/maxVotes)*100);
+                const avgBarPct = Math.min(100,(p.avgPerDay/maxAvg)*100);
+                const isFastest = p.id===fastestAvg?.id;
+                const isTopVoted = i===0;
+                return (
+                  <div key={p.id} onClick={() => p.url && window.open(p.url,"_blank")} style={{ background:"#fff", border:`1px solid ${isTopVoted?"#a78bfa":"#e5e7eb"}`, borderRadius:10, padding:"12px 16px", boxShadow:isTopVoted?"0 0 0 2px #ede9fe":"none", cursor:p.url?"pointer":"default", transition:"box-shadow 0.15s" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10, gap:8 }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
+                          <span style={{ fontSize:12, fontWeight:800, color:"#9ca3af", minWidth:20 }}>#{i+1}</span>
+                          {isTopVoted && <span style={{ fontSize:10, background:"#fef3c7", color:"#92400e", borderRadius:4, padding:"1px 6px", fontWeight:700 }}>TOP VOTED</span>}
+                          {isFastest && !isTopVoted && <span style={{ fontSize:10, background:"#ede9fe", color:"#6d28d9", borderRadius:4, padding:"1px 6px", fontWeight:700 }}>FASTEST</span>}
+                        </div>
+                        <div style={{ fontSize:13, fontWeight:700, color:"#111827", lineHeight:1.3 }}>{p.title}</div>
+                        <div style={{ fontSize:10, color:"#9ca3af", marginTop:3 }}>{p.daysOld}d old · created {new Date(p.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>
+                      </div>
+                      <StatusBadge statusId={p.portalStatusId} />
+                    </div>
+                    <div style={{ marginBottom:8 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                        <span style={{ fontSize:10, color:"#6b7280", fontWeight:600 }}>TOTAL VOTES</span>
+                        <span style={{ fontSize:12, fontWeight:800, color:"#111827" }}>{p.votes.toLocaleString()}</span>
+                      </div>
+                      <div style={{ height:7, borderRadius:4, background:"#e5e7eb", overflow:"hidden" }}>
+                        <div style={{ width:`${voteBarPct}%`, height:"100%", borderRadius:4, background:"linear-gradient(90deg,#6366f1,#8b5cf6)" }} />
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                        <span style={{ fontSize:10, color:"#6b7280", fontWeight:600 }}>AVG VOTES / DAY</span>
+                        <span style={{ fontSize:12, fontWeight:800, color:"#6366f1" }}>{p.avgPerDay.toFixed(2)}/d</span>
+                      </div>
+                      <div style={{ height:7, borderRadius:4, background:"#e5e7eb", overflow:"hidden" }}>
+                        <div style={{ width:`${avgBarPct}%`, height:"100%", borderRadius:4, background:"linear-gradient(90deg,#10b981,#06b6d4)" }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function App() {
+      const [tab, setTab] = useState("top");
+      const [data, setData] = useState(INITIAL_DATA);
+      const [loading, setLoading] = useState(false);
+      const [lastRefresh, setLastRefresh] = useState(new Date());
+      const [refreshMsg, setRefreshMsg] = useState("");
+
+      const handleRefresh = useCallback(async () => {
+        setLoading(true); setRefreshMsg("");
+        try {
+          const response = await fetch("/.netlify/functions/refresh");
+          const json = await response.json();
+          if (json.posts && json.posts.length > 0) {
+            setData(json.posts);
+            setLastRefresh(new Date());
+            setRefreshMsg("✓ Refreshed — " + json.posts.length + " posts loaded");
+          } else {
+            setRefreshMsg("⚠ No data returned — showing cached results");
+          }
+        } catch(e) {
+          setRefreshMsg("⚠ Refresh failed — " + e.message);
+        }
+        setLoading(false);
+      }, []);
+
+      return (
+        <div style={{ fontFamily:"'Inter',-apple-system,sans-serif", background:"#f9fafb", minHeight:"100vh", padding:20 }}>
+          <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e5e7eb", padding:"16px 20px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{ width:32, height:32, borderRadius:8, background:"linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>📊</div>
+              <div>
+                <div style={{ fontWeight:800, fontSize:17, color:"#111827" }}>Titan Feedback Intelligence</div>
+                <div style={{ fontSize:11, color:"#9ca3af", marginTop:1 }}>Live Canny data · Paid est. ~38% · Portal statuses</div>
+              </div>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              {refreshMsg && <span style={{ fontSize:11, color:refreshMsg.startsWith("✓")?"#10b981":"#f59e0b" }}>{refreshMsg}</span>}
+              <span style={{ fontSize:11, color:"#9ca3af" }}>Last: {lastRefresh.toLocaleTimeString()}</span>
+              <button onClick={handleRefresh} disabled={loading} style={{ padding:"7px 14px", borderRadius:8, border:"none", cursor:loading?"not-allowed":"pointer", background:loading?"#e5e7eb":"linear-gradient(135deg,#6366f1,#8b5cf6)", color:loading?"#9ca3af":"#fff", fontWeight:700, fontSize:12 }}>
+                {loading?"⏳ Loading…":"↻ Refresh"}
+              </button>
+            </div>
+          </div>
+          <div style={{ display:"flex", gap:0, marginBottom:16, background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:4, width:"fit-content" }}>
+            {[{id:"top",label:"🏆 Top Open Posts"},{id:"velocity",label:"⚡ Recent High Velocity Posts"}].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding:"7px 18px", borderRadius:7, border:"none", cursor:"pointer", fontWeight:700, fontSize:13, background:tab===t.id?"linear-gradient(135deg,#6366f1,#8b5cf6)":"transparent", color:tab===t.id?"#fff":"#6b7280", transition:"all 0.15s" }}>{t.label}</button>
+            ))}
+          </div>
+          <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e5e7eb", padding:20 }}>
+            {tab==="top" ? <TopPostsTab data={data} /> : <VelocityTab data={data} />}
+          </div>
+          <div style={{ marginTop:12, fontSize:11, color:"#9ca3af", textAlign:"center" }}>
+            Paid votes estimated at ~38% of total · Last 1Y votes estimated from creation date · Portal statuses are public-facing
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
